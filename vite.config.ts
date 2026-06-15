@@ -56,14 +56,14 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, envDir)
   const localEnv = loadEnv(mode, envDir, '')
   const {
-    VITE_APP_PORT,
-    VITE_SERVER_BASEURL,
-    VITE_APP_TITLE,
-    VITE_DELETE_CONSOLE,
-    VITE_APP_PUBLIC_BASE,
-    VITE_APP_PROXY_ENABLE,
-    VITE_APP_PROXY_PREFIX,
-    VITE_COPY_NATIVE_RES_ENABLE,
+    VITE_APP_PORT = '5173',
+    VITE_SERVER_BASEURL = 'http://localhost:3000',
+    VITE_APP_TITLE = 'unibest',
+    VITE_DELETE_CONSOLE = 'false',
+    VITE_APP_PUBLIC_BASE = '/',
+    VITE_APP_PROXY_ENABLE = 'false',
+    VITE_APP_PROXY_PREFIX = '/api',
+    VITE_COPY_NATIVE_RES_ENABLE = 'false',
   } = env
   const { WECHAT_DEVTOOLS_CLI_PATH } = localEnv
   console.log('环境变量 env -> ', env)

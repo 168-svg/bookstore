@@ -1,8 +1,8 @@
-import { getUserInfo } from '@/api/login'
+import { getUserInfo } from '@/api/auth'
 import { describe, expect, it, vi } from 'vitest'
 import { useUserStore } from './user'
 
-vi.mock('@/api/login', () => ({
+vi.mock('@/api/auth', () => ({
   getUserInfo: vi.fn(),
 }))
 

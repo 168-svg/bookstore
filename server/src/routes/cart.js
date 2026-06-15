@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getDb, createDbWrapper } from '../database.js'
-import { authMiddleware, adminMiddleware } from '../middleware/auth.js'
+import { createDbWrapper, getDb } from '../database.js'
+import { adminMiddleware, authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -32,7 +32,8 @@ router.post('/', authMiddleware, async (req, res) => {
 
   if (existing) {
     await db.prepare('UPDATE cart_items SET quantity = quantity + ? WHERE id = ?').run(quantity || 1, existing.id)
-  } else {
+  }
+  else {
     await db.prepare('INSERT INTO cart_items (user_id, book_id, quantity) VALUES (?, ?, ?)').run(req.user.userId, book_id, quantity || 1)
   }
 

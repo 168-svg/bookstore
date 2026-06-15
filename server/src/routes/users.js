@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getDb, createDbWrapper } from '../database.js'
-import { authMiddleware, adminMiddleware } from '../middleware/auth.js'
+import { createDbWrapper, getDb } from '../database.js'
+import { adminMiddleware, authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -54,7 +54,7 @@ router.put('/:id/role', authMiddleware, adminMiddleware, async (req, res) => {
 
   const rawDb = await getDb()
   const db = createDbWrapper(rawDb)
-  db.prepare("UPDATE users SET role = ?, updated_at = datetime('now', 'localtime') WHERE id = ?").run(role, req.params.id)
+  db.prepare('UPDATE users SET role = ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ?').run(role, req.params.id)
   res.json({ code: 0, msg: '角色更新成功' })
 })
 
@@ -79,7 +79,7 @@ router.put('/:id/password', authMiddleware, adminMiddleware, async (req, res) =>
 
   const rawDb = await getDb()
   const db = createDbWrapper(rawDb)
-  db.prepare("UPDATE users SET password = ?, updated_at = datetime('now', 'localtime') WHERE id = ?").run(password, req.params.id)
+  db.prepare('UPDATE users SET password = ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ?').run(password, req.params.id)
   res.json({ code: 0, msg: '密码重置成功' })
 })
 
@@ -91,9 +91,9 @@ router.get('/admin/stats', authMiddleware, adminMiddleware, async (req, res) => 
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get().count
   const bookCount = db.prepare('SELECT COUNT(*) as count FROM books').get().count
   const orderCount = db.prepare('SELECT COUNT(*) as count FROM orders').get().count
-  const totalSales = db.prepare("SELECT COALESCE(SUM(total_price), 0) as total FROM orders WHERE status != '已取消'").get().total
-  const onSaleCount = db.prepare("SELECT COUNT(*) as count FROM books WHERE status = 'on_sale'").get().count
-  const pendingOrderCount = db.prepare("SELECT COUNT(*) as count FROM orders WHERE status IN ('待付款', '待发货')").get().count
+  const totalSales = db.prepare('SELECT COALESCE(SUM(total_price), 0) as total FROM orders WHERE status != \'已取消\'').get().total
+  const onSaleCount = db.prepare('SELECT COUNT(*) as count FROM books WHERE status = \'on_sale\'').get().count
+  const pendingOrderCount = db.prepare('SELECT COUNT(*) as count FROM orders WHERE status IN (\'待付款\', \'待发货\')').get().count
 
   res.json({
     code: 0,

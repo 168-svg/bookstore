@@ -1,9 +1,9 @@
 import type { uniappRequestAdapter } from '@alova/adapter-uniapp'
-import type { IResponse } from './types'
 import AdapterUniapp from '@alova/adapter-uniapp'
 import { createAlova } from 'alova'
 import { createServerTokenAuthentication } from 'alova/client'
 import VueHook from 'alova/vue'
+import { getValidToken, logout } from '@/http/token-access'
 import { ContentTypeEnum, ResultEnum, ShowMessage } from './tools/enum'
 
 export const API_DOMAINS = {
@@ -11,7 +11,7 @@ export const API_DOMAINS = {
   SECONDARY: import.meta.env.VITE_SERVER_BASEURL_SECONDARY,
 }
 
-function extractAlovaData(rawData: any): { code: number; message: string; data: any } {
+function extractAlovaData(rawData: any): { code: number, message: string, data: any } {
   if (!rawData || typeof rawData !== 'object') {
     return { code: ResultEnum.Success0, message: '', data: rawData }
   }
@@ -30,7 +30,8 @@ const { onAuthRequired, onResponseRefreshToken } = createServerTokenAuthenticati
   refreshTokenOnError: {
     isExpired: error => error.response?.status === ResultEnum.Unauthorized,
     handler: async () => {
-      throw new Error('Token expired')
+      await logout()
+      throw new Error('Token 过期，请重新登录')
     },
   },
 })
@@ -52,10 +53,10 @@ const alovaInstance = createAlova({
     const requireAuth = !config.meta?.ignoreAuth
 
     if (requireAuth) {
-      // TODO: 接入真实 token 逻辑
-      // const token = useTokenStore().validToken
-      // if (!token) throw new Error('[请求错误]：未登录')
-      // method.config.headers.Authorization = `Bearer ${token}`
+      const token = getValidToken()
+      if (!token)
+        throw new Error('[请求错误]：未登录')
+      method.config.headers.Authorization = `Bearer ${token}`
     }
 
     if (config.meta?.domain) {

@@ -17,15 +17,16 @@ export const useUserStore = defineStore(
   () => {
     const userInfo = ref<IUserInfoRes>({ ...userInfoState })
 
-    const setUserInfo = (val: any) => {
-      if (!val) return
+    const setUserInfo = (val: Partial<IUserInfoRes> & Record<string, unknown>) => {
+      if (!val)
+        return
       const info: IUserInfoRes = {
-        userId: val.userId ?? val.id ?? -1,
-        username: val.username ?? '',
-        nickname: val.nickname ?? val.username ?? '',
-        avatar: val.avatar || val.avatarUrl || DEFAULT_AVATAR,
-        role: val.role,
-        roles: val.roles,
+        userId: (val.userId as number) ?? (val.id as number) ?? -1,
+        username: (val.username as string) ?? '',
+        nickname: (val.nickname as string) ?? (val.username as string) ?? '',
+        avatar: (val.avatar as string) || (val.avatarUrl as string) || DEFAULT_AVATAR,
+        role: val.role as string | undefined,
+        roles: val.roles as string[] | undefined,
       }
       userInfo.value = info
     }

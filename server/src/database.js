@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import initSqlJs from 'sql.js'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'

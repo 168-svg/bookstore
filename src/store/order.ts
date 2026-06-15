@@ -27,21 +27,7 @@ export interface OrderItem {
 }
 
 export const useOrderStore = defineStore('order', () => {
-  const orders = ref<OrderItem[]>([
-    {
-      id: '1',
-      orderNo: '20240518112233',
-      books: [
-        { title: '百年孤独', author: '马尔克斯', color: '#4f2929', price: 15.00, quantity: 1, condition: '8成新' },
-      ],
-      totalCount: 1,
-      totalPrice: 18.00,
-      shippingFee: 3.00,
-      status: '待收货',
-      address: { name: '张同学', phone: '138****1234', detail: '浙江省杭州市西湖区文三路123号' },
-      createTime: '2024-05-18',
-    },
-  ])
+  const orders = ref<OrderItem[]>([])
 
   function addOrder(books: OrderBookItem[], totalPrice: number, shippingFee: number, address: OrderItem['address']) {
     const newOrder: OrderItem = {
@@ -60,7 +46,7 @@ export const useOrderStore = defineStore('order', () => {
   }
 
   function updateOrderStatus(id: string, status: OrderItem['status']) {
-    const order = orders.value.find((item) => item.id === id)
+    const order = orders.value.find(item => item.id === id)
     if (order) {
       order.status = status
     }

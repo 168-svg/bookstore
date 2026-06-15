@@ -1,31 +1,32 @@
-import type { CustomRequestOptions, IResponse } from '@/http/types'
+import type { CustomRequestOptions } from '@/http/types'
 import { ResultEnum } from './tools/enum'
 
-function extractDataAndCode(rawData: any): { code: number; msg: string; data: any } {
+function extractDataAndCode(rawData: unknown): { code: number, msg: string, data: unknown } {
   if (!rawData) {
-    return { code: ResultEnum.Success0, msg: '', data: null as any }
+    return { code: ResultEnum.Success0, msg: '', data: null }
   }
 
   if (typeof rawData !== 'object') {
     return { code: ResultEnum.Success0, msg: '', data: rawData }
   }
 
-  const hasCode = 'code' in rawData
-  const hasData = 'data' in rawData
-  const hasMsg = 'msg' in rawData || 'message' in rawData
+  const raw = rawData as Record<string, unknown>
+  const hasCode = 'code' in raw
+  const hasData = 'data' in raw
+  const hasMsg = 'msg' in raw || 'message' in raw
 
   if (hasCode && hasData) {
     return {
-      code: rawData.code,
-      msg: rawData.msg || rawData.message || '',
-      data: rawData.data,
+      code: raw.code as number,
+      msg: (raw.msg || raw.message || '') as string,
+      data: raw.data,
     }
   }
 
   if (hasCode && !hasData) {
     return {
-      code: rawData.code,
-      msg: rawData.msg || rawData.message || '',
+      code: raw.code as number,
+      msg: (raw.msg || raw.message || '') as string,
       data: rawData,
     }
   }
@@ -33,8 +34,8 @@ function extractDataAndCode(rawData: any): { code: number; msg: string; data: an
   if (!hasCode && hasData) {
     return {
       code: ResultEnum.Success0,
-      msg: rawData.msg || rawData.message || '',
-      data: rawData.data,
+      msg: (raw.msg || raw.message || '') as string,
+      data: raw.data,
     }
   }
 
@@ -123,8 +124,3 @@ http.get = httpGet
 http.post = httpPost
 http.put = httpPut
 http.delete = httpDelete
-
-http.Get = httpGet
-http.Post = httpPost
-http.Put = httpPut
-http.Delete = httpDelete

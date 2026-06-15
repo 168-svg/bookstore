@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getDb, createDbWrapper } from '../database.js'
-import { authMiddleware, adminMiddleware } from '../middleware/auth.js'
+import { createDbWrapper, getDb } from '../database.js'
+import { adminMiddleware, authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -45,8 +45,14 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
   const updates = []
   const values = []
-  if (name !== undefined) { updates.push('name = ?'); values.push(name) }
-  if (sort_order !== undefined) { updates.push('sort_order = ?'); values.push(sort_order) }
+  if (name !== undefined) {
+    updates.push('name = ?')
+    values.push(name)
+  }
+  if (sort_order !== undefined) {
+    updates.push('sort_order = ?')
+    values.push(sort_order)
+  }
 
   if (updates.length === 0) {
     return res.json({ code: 400, msg: '没有需要更新的字段' })
@@ -86,9 +92,18 @@ router.put('/sub/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
   const updates = []
   const values = []
-  if (name !== undefined) { updates.push('name = ?'); values.push(name) }
-  if (color !== undefined) { updates.push('color = ?'); values.push(color) }
-  if (sort_order !== undefined) { updates.push('sort_order = ?'); values.push(sort_order) }
+  if (name !== undefined) {
+    updates.push('name = ?')
+    values.push(name)
+  }
+  if (color !== undefined) {
+    updates.push('color = ?')
+    values.push(color)
+  }
+  if (sort_order !== undefined) {
+    updates.push('sort_order = ?')
+    values.push(sort_order)
+  }
 
   if (updates.length === 0) {
     return res.json({ code: 400, msg: '没有需要更新的字段' })

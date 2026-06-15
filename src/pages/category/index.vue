@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import BookCover from '@/components/BookCover.vue'
 import { getCategories } from '@/api/categories'
+import type { IBook } from '@/api/books'
+import type { ICategory } from '@/api/categories'
 import { getBooks } from '@/api/books'
-import type { IBook, ICategory } from '@/api/books'
 
 definePage({
   style: {

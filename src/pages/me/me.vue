@@ -1,13 +1,13 @@
 <script setup lang="ts">
+import { useTokenStore, useUserStore } from '@/store'
+import { register } from '@/api/auth'
+
 definePage({
   style: {
     navigationStyle: 'custom',
     navigationBarTitleText: '我的',
   },
 })
-
-import { useUserStore, useTokenStore } from '@/store'
-import { login, register } from '@/api/auth'
 
 const userStore = useUserStore()
 const tokenStore = useTokenStore()
@@ -186,7 +186,7 @@ function toggleLoginMode() {
         </view>
 
         <view v-if="!isRegisterMode" class="text-center mt-16rpx text-22rpx text-text-muted">
-          管理员账号: admin / admin123
+          新用户？点击上方注册
         </view>
       </view>
     </view>

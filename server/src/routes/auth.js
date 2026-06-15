@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getDb, createDbWrapper } from '../database.js'
-import { generateToken, authMiddleware } from '../middleware/auth.js'
+import { createDbWrapper, getDb } from '../database.js'
+import { authMiddleware, generateToken } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -90,15 +90,24 @@ router.post('/updateInfo', authMiddleware, async (req, res) => {
 
   const updates = []
   const values = []
-  if (nickname !== undefined) { updates.push('nickname = ?'); values.push(nickname) }
-  if (sex !== undefined) { updates.push('sex = ?'); values.push(sex) }
-  if (avatar !== undefined) { updates.push('avatar = ?'); values.push(avatar) }
+  if (nickname !== undefined) {
+    updates.push('nickname = ?')
+    values.push(nickname)
+  }
+  if (sex !== undefined) {
+    updates.push('sex = ?')
+    values.push(sex)
+  }
+  if (avatar !== undefined) {
+    updates.push('avatar = ?')
+    values.push(avatar)
+  }
 
   if (updates.length === 0) {
     return res.json({ code: 400, msg: '没有需要更新的字段' })
   }
 
-  updates.push("updated_at = datetime('now', 'localtime')")
+  updates.push('updated_at = datetime(\'now\', \'localtime\')')
   values.push(req.user.userId)
 
   db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...values)
@@ -120,7 +129,7 @@ router.post('/updatePassword', authMiddleware, async (req, res) => {
     return res.json({ code: 400, msg: '旧密码错误' })
   }
 
-  db.prepare("UPDATE users SET password = ?, updated_at = datetime('now', 'localtime') WHERE id = ?").run(newPassword, req.user.userId)
+  db.prepare('UPDATE users SET password = ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ?').run(newPassword, req.user.userId)
 
   res.json({ code: 0, msg: '密码修改成功' })
 })

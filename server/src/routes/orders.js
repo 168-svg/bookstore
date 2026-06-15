@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { getDb, createDbWrapper } from '../database.js'
-import { authMiddleware, adminMiddleware } from '../middleware/auth.js'
+import { createDbWrapper, getDb } from '../database.js'
+import { adminMiddleware, authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -81,7 +81,7 @@ router.post('/', authMiddleware, async (req, res) => {
   `)
 
   const deleteCart = db.prepare('DELETE FROM cart_items WHERE user_id = ? AND checked = 1')
-  const updateBookStatus = db.prepare("UPDATE books SET status = 'sold' WHERE id = ?")
+  const updateBookStatus = db.prepare('UPDATE books SET status = \'sold\' WHERE id = ?')
 
   const transaction = db.transaction(() => {
     const orderResult = insertOrder.run(orderNo, req.user.userId, totalPrice + shippingFee, shippingFee, address || '')
@@ -122,7 +122,7 @@ router.put('/:id/status', authMiddleware, async (req, res) => {
     return res.json({ code: 403, msg: '无权操作' })
   }
 
-  db.prepare("UPDATE orders SET status = ?, updated_at = datetime('now', 'localtime') WHERE id = ?").run(status, req.params.id)
+  db.prepare('UPDATE orders SET status = ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ?').run(status, req.params.id)
   res.json({ code: 0, msg: '状态更新成功' })
 })
 
