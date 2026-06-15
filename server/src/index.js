@@ -10,7 +10,7 @@ import reviewsRoutes from './routes/reviews.js'
 import userRoutes from './routes/users.js'
 
 const app = express()
-const PORT = 8080
+const PORT = process.env.PORT || 8080
 
 // 中间件
 app.use(cors())
