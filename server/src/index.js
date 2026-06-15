@@ -14,7 +14,6 @@ import reviewsRoutes from './routes/reviews.js'
 import userRoutes from './routes/users.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
 const app = express()
 const PORT = process.env.PORT || 8080
 
