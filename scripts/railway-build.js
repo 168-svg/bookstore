@@ -20,13 +20,13 @@ try {
   // 1. 安装前端依赖（根目录已有 pnpm/npm 依赖）
   // 2. 安装 server 依赖
   if (fs.existsSync(path.join(serverDir, 'package.json'))) {
-    run('npm install --omit=dev --no-audit --no-fund', { cwd: serverDir })
+    run('pnpm install --prod --no-optional', { cwd: serverDir })
   }
 
   // 3. 构建 uni-app H5
   if (fs.existsSync(path.join(rootDir, 'vite.config.ts'))) {
     console.log('\n📦 构建 H5 前端 (uni build)...')
-    run('npm run build:h5', { env: { NODE_ENV: 'production' } })
+    run('pnpm run build:h5', { env: { NODE_ENV: 'production', UNI_PLATFORM: 'h5' } })
 
     // 4. 将 H5 构建产物拷贝到 server/public（Express 静态资源目录）
     if (fs.existsSync(distDir)) {
