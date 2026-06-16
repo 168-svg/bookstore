@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BookCover from '@/components/BookCover.vue'
-import { useCartStore, useOrderStore } from '@/store'
+import { useCartStore } from '@/store'
+import { createOrder } from '@/api/orders'
 
 definePage({
   style: {
@@ -9,7 +10,7 @@ definePage({
 })
 
 const cartStore = useCartStore()
-const orderStore = useOrderStore()
+const submitting = ref(false)
 
 const address = ref({
   name: '张同学',
@@ -32,7 +33,7 @@ function saveAddress() {
   uni.showToast({ title: '地址已更新', icon: 'none' })
 }
 
-function handleSubmitOrder() {
+async function handleSubmitOrder() {
   if (cartStore.checkedItems.length === 0) {
     uni.showToast({
       title: '没有可以提交的订单项',
@@ -40,34 +41,31 @@ function handleSubmitOrder() {
     })
     return
   }
+  if (submitting.value) return
 
   uni.showModal({
     title: '确认下单',
     content: `订单合计 ¥${finalPay.value.toFixed(2)}，确认下单吗？`,
-    success: (res) => {
+    success: async (res) => {
       if (!res.confirm) return
 
-      const orderBooks = cartStore.checkedItems.map(item => ({
-        title: item.title,
-        author: item.author,
-        color: item.color,
-        price: item.price,
-        quantity: item.quantity,
-        condition: item.condition,
-      }))
+      submitting.value = true
+      try {
+        const addressText = `${address.value.name} ${address.value.phone} ${address.value.detail}`
+        await createOrder({ address: addressText })
+        cartStore.clearCheckedItems()
 
-      orderStore.addOrder(
-        orderBooks,
-        finalPay.value,
-        shippingFee,
-        { ...address.value },
-      )
-      cartStore.clearCheckedItems()
-
-      uni.showToast({ title: '订单提交成功', icon: 'success' })
-      setTimeout(() => {
-        uni.redirectTo({ url: '/pages/orders/index' })
-      }, 1000)
+        uni.showToast({ title: '订单提交成功', icon: 'success' })
+        setTimeout(() => {
+          uni.redirectTo({ url: '/pages/orders/index' })
+        }, 1000)
+      }
+      catch (err) {
+        console.error(err)
+      }
+      finally {
+        submitting.value = false
+      }
     },
   })
 }
