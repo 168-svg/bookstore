@@ -1,12 +1,10 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "buildCommand": "npm install --prefix server --omit=dev --no-audit --no-fund"
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd server && node src/index.js",
-    "healthcheckPath": "/health",
-    "startupCommand": "cd server && node src/index.js"
+    "startCommand": "npm start",
+    "healthcheckPath": "/health"
   }
 }
