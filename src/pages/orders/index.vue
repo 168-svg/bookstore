@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue'
 import BookCover from '@/components/BookCover.vue'
 import type { IOrder } from '@/api/orders'
 import { getOrders, updateOrderStatus } from '@/api/orders'
@@ -17,6 +18,13 @@ const tabs = [
   { key: '已完成', label: '已完成' },
   { key: '已取消', label: '已取消' },
 ]
+
+const roleTabs = [
+  { key: 'buyer', label: '我买到的' },
+  { key: 'seller', label: '我卖出的' },
+]
+
+const activeRole = ref<'buyer' | 'seller'>('buyer')
 const activeTab = ref('all')
 const orders = ref<IOrder[]>([])
 const loading = ref(false)
@@ -29,7 +37,7 @@ const filteredOrders = computed(() => {
 async function fetchOrders() {
   try {
     loading.value = true
-    const params: Record<string, any> = { page: 1, pageSize: 50 }
+    const params: Record<string, any> = { page: 1, pageSize: 50, role: activeRole.value }
     if (activeTab.value !== 'all') params.status = activeTab.value
     const res = await getOrders(params)
     orders.value = res.list
@@ -40,6 +48,11 @@ async function fetchOrders() {
   finally {
     loading.value = false
   }
+}
+
+function handleRoleClick(key: string) {
+  activeRole.value = key as 'buyer' | 'seller'
+  fetchOrders()
 }
 
 function handleTabClick(key: string) {
@@ -85,14 +98,34 @@ async function handlePay(order: IOrder) {
   fetchOrders()
 }
 
-onMounted(() => {
+onLoad((options: any) => {
+  if (options?.role === 'seller') {
+    activeRole.value = 'seller'
+    uni.setNavigationBarTitle({ title: '我卖出的' })
+  } else if (options?.role === 'buyer') {
+    activeRole.value = 'buyer'
+    uni.setNavigationBarTitle({ title: '我买到的' })
+  }
   fetchOrders()
 })
 </script>
 
 <template>
   <view class="orders-page bg-bg min-h-100vh">
-    <!-- Tab栏 -->
+    <!-- 角色切换 Tab -->
+    <view class="role-tabs flex bg-white border-b border-border">
+      <view
+        v-for="roleTab in roleTabs"
+        :key="roleTab.key"
+        class="role-tab-item flex-1 py-24rpx text-center text-26rpx"
+        :class="activeRole === roleTab.key ? 'text-primary font-bold border-b-4 border-primary' : 'text-text-muted'"
+        @tap="handleRoleClick(roleTab.key)"
+      >
+        {{ roleTab.label }}
+      </view>
+    </view>
+
+    <!-- 状态 Tab -->
     <view class="order-tabs flex bg-white border-b border-border">
       <view
         v-for="tab in tabs"
