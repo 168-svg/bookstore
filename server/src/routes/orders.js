@@ -4,14 +4,23 @@ import { adminMiddleware, authMiddleware } from '../middleware/auth.js'
 
 const router = Router()
 
-// 获取我的订单
+// 获取我的订单（支持 role=buyer/seller 过滤）
 router.get('/', authMiddleware, async (req, res) => {
   const rawDb = await getDb()
   const db = createDbWrapper(rawDb)
-  const { status, page = 1, pageSize = 20 } = req.query
+  const { status, role = 'buyer', page = 1, pageSize = 20 } = req.query
 
-  let where = 'WHERE o.buyer_id = ?'
-  const params = [req.user.userId]
+  let where = ''
+  let params = []
+
+  if (role === 'seller') {
+    // 作为卖家：找到包含我上架书籍的订单
+    where = 'WHERE EXISTS (SELECT 1 FROM order_items oi LEFT JOIN books b ON oi.book_id = b.id WHERE oi.order_id = o.id AND b.seller_id = ?)'
+    params.push(req.user.userId)
+  } else {
+    where = 'WHERE o.buyer_id = ?'
+    params.push(req.user.userId)
+  }
 
   if (status) {
     where += ' AND o.status = ?'
@@ -22,16 +31,13 @@ router.get('/', authMiddleware, async (req, res) => {
   const offset = (Number(page) - 1) * Number(pageSize)
 
   const orders = db.prepare(`
-    SELECT o.*, GROUP_CONCAT(oi.title) as items_summary
+    SELECT o.*
     FROM orders o
-    LEFT JOIN order_items oi ON o.id = oi.order_id
     ${where}
-    GROUP BY o.id
     ORDER BY o.created_at DESC
     LIMIT ? OFFSET ?
   `).all(...params, Number(pageSize), offset)
 
-  // 获取每个订单的详情项
   const result = orders.map((order) => {
     const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id)
     return { ...order, items }

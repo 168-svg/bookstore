@@ -7,7 +7,7 @@ const router = Router()
 router.get('/', async(req, res) => {
     const rawDb = await getDb()
     const db = createDbWrapper(rawDb)
-    const { keyword, category_id, sub_category_id, status, page = 1, pageSize = 20 } = req.query
+    const { keyword, category_id, sub_category_id, status, seller_id, page = 1, pageSize = 20 } = req.query
 
     let where = 'WHERE 1=1'
     const params = []
@@ -25,10 +25,14 @@ router.get('/', async(req, res) => {
         where += ' AND b.sub_category_id = ?'
         params.push(Number(sub_category_id))
     }
+    if (seller_id) {
+        where += ' AND b.seller_id = ?'
+        params.push(Number(seller_id))
+    }
     if (status) {
         where += ' AND b.status = ?'
         params.push(status)
-    } else {
+    } else if (!seller_id) {
         where += " AND b.status = 'on_sale'"
     }
 

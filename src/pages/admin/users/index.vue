@@ -10,10 +10,22 @@ import { getUsers, updateUserRole, deleteUser, resetUserPassword } from '@/api/a
 
 const users = ref<IAdminUser[]>([])
 const total = ref(0)
-const page = ref(1)
 const keyword = ref('')
 const roleFilter = ref('')
 const loading = ref(false)
+const isSuperAdmin = ref(false)
+
+const roleLabels: Record<string, string> = {
+  super_admin: '超级管理员',
+  admin: '管理员',
+  user: '普通用户',
+}
+
+function getNextRole(role: string) {
+  if (role === 'super_admin') return 'admin'
+  if (role === 'admin') return 'user'
+  return 'admin'
+}
 
 async function fetchUsers() {
   try {
@@ -24,6 +36,7 @@ async function fetchUsers() {
     const res = await getUsers(params)
     users.value = res.list
     total.value = res.total
+    isSuperAdmin.value = !!res.isSuperAdmin
   }
   catch {
     uni.showToast({ title: '获取用户列表失败', icon: 'none' })
@@ -45,8 +58,12 @@ function handleRoleFilter(role: string) {
 }
 
 function handleToggleRole(user: IAdminUser) {
-  const newRole = user.role === 'admin' ? 'user' : 'admin'
-  const label = newRole === 'admin' ? '管理员' : '普通用户'
+  if (!isSuperAdmin.value) {
+    uni.showToast({ title: '仅超级管理员可设置角色', icon: 'none' })
+    return
+  }
+  const newRole = getNextRole(user.role)
+  const label = roleLabels[newRole] || newRole
   uni.showModal({
     title: '确认操作',
     content: `确定要将用户"${user.nickname || user.username}"的角色改为"${label}"吗？`,
@@ -61,6 +78,10 @@ function handleToggleRole(user: IAdminUser) {
 }
 
 function handleDeleteUser(user: IAdminUser) {
+  if (user.role === 'super_admin') {
+    uni.showToast({ title: '无法删除超级管理员', icon: 'none' })
+    return
+  }
   uni.showModal({
     title: '确认删除',
     content: `确定要删除用户"${user.nickname || user.username}"吗？此操作不可恢复！`,
@@ -75,6 +96,10 @@ function handleDeleteUser(user: IAdminUser) {
 }
 
 function handleResetPassword(user: IAdminUser) {
+  if (!isSuperAdmin.value && user.role === 'super_admin') {
+    uni.showToast({ title: '无权重置超级管理员密码', icon: 'none' })
+    return
+  }
   uni.showModal({
     title: '重置密码',
     editable: true,
@@ -108,13 +133,21 @@ onMounted(() => {
     </view>
 
     <!-- 角色筛选 -->
-    <view class="role-tabs flex bg-white px-30rpx py-16rpx gap-16rpx border-b border-#F0F0F0">
+    <view class="role-tabs flex bg-white px-30rpx py-16rpx gap-16rpx border-b border-#F0F0F0 flex-wrap">
       <view
         class="tab-pill py-8rpx px-24rpx rounded-24rpx text-22rpx"
         :class="roleFilter === '' ? 'bg-primary text-white' : 'bg-#F0F0F0 text-#666'"
         @tap="handleRoleFilter('')"
       >
         全部
+      </view>
+      <view
+        v-if="isSuperAdmin"
+        class="tab-pill py-8rpx px-24rpx rounded-24rpx text-22rpx"
+        :class="roleFilter === 'super_admin' ? 'bg-accent text-white' : 'bg-#F0F0F0 text-#666'"
+        @tap="handleRoleFilter('super_admin')"
+      >
+        超级管理员
       </view>
       <view
         class="tab-pill py-8rpx px-24rpx rounded-24rpx text-22rpx"
@@ -144,14 +177,20 @@ onMounted(() => {
         class="user-card bg-white rounded-16rpx p-24rpx shadow-sm"
       >
         <view class="flex items-center gap-20rpx">
-          <view class="user-avatar w-80rpx h-80rpx rounded-full flex items-center justify-center text-32rpx font-bold text-white" :class="user.role === 'admin' ? 'bg-accent' : 'bg-primary'">
+          <view class="user-avatar w-80rpx h-80rpx rounded-full flex items-center justify-center text-32rpx font-bold text-white"
+            :class="user.role === 'super_admin' ? 'bg-#B83280' : user.role === 'admin' ? 'bg-accent' : 'bg-primary'">
             {{ (user.nickname || user.username).slice(0, 1) }}
           </view>
           <view class="flex-1">
             <view class="flex items-center gap-12rpx">
               <text class="text-26rpx font-bold">{{ user.nickname || user.username }}</text>
-              <text class="text-18rpx px-8rpx py-2rpx rounded-4rpx" :class="user.role === 'admin' ? 'bg-#FFF3E0 text-#E7A941' : 'bg-#EBF4EE text-primary'">
-                {{ user.role === 'admin' ? '管理员' : '用户' }}
+              <text class="text-18rpx px-8rpx py-2rpx rounded-4rpx"
+                :class="user.role === 'super_admin'
+                  ? 'bg-#FCE7F6 text-#B83280'
+                  : user.role === 'admin'
+                    ? 'bg-#FFF3E0 text-#E7A941'
+                    : 'bg-#EBF4EE text-primary'">
+                {{ roleLabels[user.role] || user.role }}
               </text>
             </view>
             <text class="text-22rpx text-text-muted">@{{ user.username }} · {{ user.created_at }}</text>
@@ -159,14 +198,26 @@ onMounted(() => {
         </view>
 
         <view class="flex gap-16rpx mt-20rpx pt-16rpx border-t border-#F5F5F5">
-          <view class="flex-1 text-center py-12rpx text-22rpx text-primary font-bold border border-primary rounded-8rpx" @tap="handleToggleRole(user)">
-            {{ user.role === 'admin' ? '设为用户' : '设为管理员' }}
+          <view v-if="isSuperAdmin" class="flex-1 text-center py-12rpx text-22rpx text-primary font-bold border border-primary rounded-8rpx"
+            @tap="handleToggleRole(user)">
+            {{ user.role === 'super_admin' ? '降为管理员' : (user.role === 'admin' ? '设为用户' : '设为管理员') }}
           </view>
-          <view class="flex-1 text-center py-12rpx text-22rpx text-#4A90E2 font-bold border border-#4A90E2 rounded-8rpx" @tap="handleResetPassword(user)">
+          <view v-if="isSuperAdmin" class="flex-1 text-center py-12rpx text-22rpx text-#4A90E2 font-bold border border-#4A90E2 rounded-8rpx"
+            @tap="handleResetPassword(user)">
             重置密码
           </view>
-          <view class="flex-1 text-center py-12rpx text-22rpx text-#E75E40 font-bold border border-#E75E40 rounded-8rpx" @tap="handleDeleteUser(user)">
+          <view v-if="!isSuperAdmin && user.role !== 'super_admin'"
+            class="flex-1 text-center py-12rpx text-22rpx text-#4A90E2 font-bold border border-#4A90E2 rounded-8rpx"
+            @tap="handleResetPassword(user)">
+            重置密码
+          </view>
+          <view v-if="user.role !== 'super_admin'"
+            class="flex-1 text-center py-12rpx text-22rpx text-#E75E40 font-bold border border-#E75E40 rounded-8rpx"
+            @tap="handleDeleteUser(user)">
             删除
+          </view>
+          <view v-if="!isSuperAdmin" class="flex-1 text-center py-12rpx text-22rpx text-text-muted opacity-60">
+            仅超级管理员可改角色
           </view>
         </view>
       </view>

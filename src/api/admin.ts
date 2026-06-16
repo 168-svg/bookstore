@@ -22,7 +22,7 @@ export interface IAdminStats {
 
 // 获取用户列表
 export function getUsers(params?: { keyword?: string, role?: string, page?: number, pageSize?: number }) {
-  return http.get<{ list: IAdminUser[], total: number, page: number, pageSize: number }>('/users', params)
+  return http.get<{ list: IAdminUser[], total: number, page: number, pageSize: number, isSuperAdmin: boolean }>('/users', params)
 }
 
 // 更新用户角色

@@ -25,7 +25,7 @@ export interface IOrderItem {
 }
 
 // 获取我的订单
-export function getOrders(params?: { status?: string, page?: number, pageSize?: number }) {
+export function getOrders(params?: { status?: string, role?: 'buyer' | 'seller', page?: number, pageSize?: number }) {
   return http.get<{ list: IOrder[], total: number, page: number, pageSize: number }>('/orders', params)
 }
 

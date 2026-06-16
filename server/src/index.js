@@ -12,6 +12,8 @@ import cartRoutes from './routes/cart.js'
 import orderRoutes from './routes/orders.js'
 import reviewsRoutes from './routes/reviews.js'
 import userRoutes from './routes/users.js'
+import addressRoutes from './routes/addresses.js'
+import favoriteRoutes from './routes/favorites.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -33,6 +35,8 @@ app.use('/cart', cartRoutes)
 app.use('/orders', orderRoutes)
 app.use('/reviews', reviewsRoutes)
 app.use('/users', userRoutes)
+app.use('/addresses', addressRoutes)
+app.use('/favorites', favoriteRoutes)
 
 // 健康检查
 app.get('/health', (req, res) => {

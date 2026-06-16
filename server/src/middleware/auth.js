@@ -52,9 +52,23 @@ export function authMiddleware(req, res, next) {
     next()
 }
 
+// 管理员角色：admin（普通管理员）、super_admin（超级管理员）都可访问管理员功能
 export function adminMiddleware(req, res, next) {
-    if (!req.user || req.user.role !== 'admin') {
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super_admin')) {
         return res.status(403).json({ code: 403, msg: '无管理员权限' })
     }
     next()
+}
+
+// 仅超级管理员可访问
+export function superAdminMiddleware(req, res, next) {
+    if (!req.user || req.user.role !== 'super_admin') {
+        return res.status(403).json({ code: 403, msg: '无超级管理员权限' })
+    }
+    next()
+}
+
+// 判断当前用户是否为超级管理员
+export function isSuperAdmin(req) {
+    return req.user && req.user.role === 'super_admin'
 }

@@ -1,8 +1,14 @@
 import { Router } from 'express'
 import { createDbWrapper, getDb } from '../database.js'
-import { adminMiddleware, authMiddleware } from '../middleware/auth.js'
+import { adminMiddleware, authMiddleware, superAdminMiddleware, isSuperAdmin } from '../middleware/auth.js'
 
 const router = Router()
+
+// 辅助：禁止普通管理员不能对超级管理员做任何变更操作
+function isTargetSuperAdmin(db, userId) {
+  const target = db.prepare('SELECT role FROM users WHERE id = ?').get(userId)
+  return target && target.role === 'super_admin'
+}
 
 // 管理员：获取所有用户
 router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
@@ -41,14 +47,15 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
       total: countRow.total,
       page: Number(page),
       pageSize: Number(pageSize),
+      isSuperAdmin: isSuperAdmin(req),
     },
   })
 })
 
-// 管理员：更新用户角色
-router.put('/:id/role', authMiddleware, adminMiddleware, async (req, res) => {
+// 超级管理员：更新用户角色（普通管理员不能设置别人管理员或普通用户）
+router.put('/:id/role', authMiddleware, superAdminMiddleware, async (req, res) => {
   const { role } = req.body
-  if (!['user', 'admin'].includes(role)) {
+  if (!['user', 'admin', 'super_admin'].includes(role)) {
     return res.json({ code: 400, msg: '无效的角色' })
   }
 
@@ -58,19 +65,26 @@ router.put('/:id/role', authMiddleware, adminMiddleware, async (req, res) => {
   res.json({ code: 0, msg: '角色更新成功' })
 })
 
-// 管理员：删除用户
+// 管理员：删除用户（普通管理员不能删除超级管理员；不能删除自己）
 router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   const rawDb = await getDb()
   const db = createDbWrapper(rawDb)
+
   // 不能删除自己
   if (Number(req.params.id) === req.user.userId) {
     return res.json({ code: 400, msg: '不能删除自己' })
   }
+
+  // 普通管理员不能删除超级管理员
+  if (isTargetSuperAdmin(db, req.params.id)) {
+    return res.status(403).json({ code: 403, msg: '无权删除超级管理员' })
+  }
+
   db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id)
   res.json({ code: 0, msg: '删除成功' })
 })
 
-// 管理员：重置用户密码
+// 超级管理员：重置用户密码（普通管理员不能重置超级管理员密码）
 router.put('/:id/password', authMiddleware, adminMiddleware, async (req, res) => {
   const { password } = req.body
   if (!password) {
@@ -79,6 +93,12 @@ router.put('/:id/password', authMiddleware, adminMiddleware, async (req, res) =>
 
   const rawDb = await getDb()
   const db = createDbWrapper(rawDb)
+
+  // 普通管理员不能重置超级管理员密码
+  if (!isSuperAdmin(req) && isTargetSuperAdmin(db, req.params.id)) {
+    return res.status(403).json({ code: 403, msg: '无权重置超级管理员密码' })
+  }
+
   db.prepare('UPDATE users SET password = ?, updated_at = datetime(\'now\', \'localtime\') WHERE id = ?').run(password, req.params.id)
   res.json({ code: 0, msg: '密码重置成功' })
 })

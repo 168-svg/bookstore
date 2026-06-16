@@ -105,10 +105,42 @@ export async function initDatabase() {
     )
   `)
 
-  // 插入默认管理员（密码: admin123）
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS addresses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL DEFAULT '',
+      phone TEXT NOT NULL DEFAULT '',
+      address TEXT NOT NULL DEFAULT '',
+      is_default INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `)
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      book_id INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (book_id) REFERENCES books(id),
+      UNIQUE(user_id, book_id)
+    )
+  `)
+
+  // 插入默认超级管理员（密码: admin123）
   const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get('admin')
   if (!adminExists) {
-    db.prepare('INSERT INTO users (username, password, nickname, role) VALUES (?, ?, ?, ?)').run('admin', 'admin123', '管理员', 'admin')
+    db.prepare('INSERT INTO users (username, password, nickname, role) VALUES (?, ?, ?, ?)').run('admin', 'admin123', '超级管理员', 'super_admin')
+  }
+
+  // 若存在 username='admin' 且 role 为 'admin'，升级为 super_admin（兼容旧数据库）
+  const legacyAdmin = db.prepare("SELECT id FROM users WHERE username = 'admin' AND role = 'admin'").get()
+  if (legacyAdmin) {
+    db.prepare("UPDATE users SET role = 'super_admin', updated_at = datetime('now', 'localtime') WHERE id = ?").run(legacyAdmin.id)
   }
 
   // 插入默认分类

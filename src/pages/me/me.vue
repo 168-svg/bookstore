@@ -28,8 +28,8 @@ const menuItems = computed(() => {
   const items = [
     { text: '我的订单', path: '/pages/orders/index', isTab: false },
     { text: '我的购物车', path: '/pages/cart/index', isTab: true },
-    { text: '地址管理', path: '', isTab: false },
-    { text: '联系客服', path: '', isTab: false },
+    { text: '地址管理', path: '/pages/address/index', isTab: false },
+    { text: '联系客服', path: '', action: 'contact_service', isTab: false },
   ]
 
   // 管理员菜单
@@ -42,11 +42,37 @@ const menuItems = computed(() => {
 
 const isAdmin = computed(() => userStore.userInfo.role === 'admin')
 
-function handleMenuClick(path: string, isTab: boolean) {
+function handleMenuClick(path: string, isTab: boolean, action?: string) {
+  if (action === 'contact_service') {
+    uni.showModal({
+      title: '联系客服',
+      content: '客服电话: 400-888-8888\n工作时间: 9:00 - 21:00',
+      showCancel: false,
+      confirmText: '知道了',
+    })
+    return
+  }
   if (!path) return
   if (isTab) {
     uni.switchTab({ url: path })
   } else {
+    uni.navigateTo({ url: path })
+  }
+}
+
+function handleStatClick(label: string) {
+  if (!tokenStore.hasLogin) {
+    uni.showToast({ title: '请先登录', icon: 'none' })
+    return
+  }
+  const map: Record<string, string> = {
+    '我发布的': '/pages/my-published/index',
+    '我卖出的': '/pages/orders/index?role=seller',
+    '我买到的': '/pages/orders/index?role=buyer',
+    '收藏夹': '/pages/favorites/index',
+  }
+  const path = map[label]
+  if (path) {
     uni.navigateTo({ url: path })
   }
 }
@@ -127,7 +153,12 @@ function toggleLoginMode() {
 
     <!-- 统计数据 -->
     <view class="profile-stats-grid grid grid-cols-4 bg-white py-30rpx text-center border-b border-border">
-      <view v-for="stat in stats" :key="stat.label" class="stat-item flex flex-col gap-8rpx text-22rpx text-text-muted">
+      <view
+        v-for="stat in stats"
+        :key="stat.label"
+        class="stat-item flex flex-col gap-8rpx text-22rpx text-text-muted cursor-pointer"
+        @tap="handleStatClick(stat.label)"
+      >
         <text class="stat-num text-32rpx font-bold text-text-main">{{ stat.num }}</text>
         <text>{{ stat.label }}</text>
       </view>
@@ -139,7 +170,7 @@ function toggleLoginMode() {
         v-for="item in menuItems"
         :key="item.text"
         class="menu-list-row flex justify-between py-28rpx px-30rpx text-26rpx border-b border-#FAFAFA"
-        @tap="handleMenuClick(item.path, item.isTab)"
+        @tap="handleMenuClick(item.path, item.isTab, (item as any).action)"
       >
         <view class="flex items-center gap-12rpx">
           <text>{{ item.text }}</text>
