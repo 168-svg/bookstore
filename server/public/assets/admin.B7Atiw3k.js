@@ -1,0 +1,1 @@
+import{y as s}from"./index-C9q6J0S4.js";function u(e){return s.get("/users",e)}function n(e,t){return s.put(`/users/${e}/role`,{role:t})}function a(e){return s.delete(`/users/${e}`)}function o(e,t){return s.put(`/users/${e}/password`,{password:t})}function d(){return s.get("/users/admin/stats")}export{u as a,a as d,d as g,o as r,n as u};

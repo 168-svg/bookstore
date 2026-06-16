@@ -1,0 +1,1 @@
+import{y as t}from"./index-C9q6J0S4.js";function s(o){return t.get("/books",o)}function u(o){return t.get(`/books/${o}`)}function r(o){return t.post("/books",o)}function a(o,e){return t.put(`/books/${o}`,e)}function k(o){return t.delete(`/books/${o}`)}function i(o){return t.get("/books/admin/all",o)}export{u as a,i as b,k as d,s as g,r as p,a as u};

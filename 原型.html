@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二手书交易系统 - 高保真交互原型</title>
+    <style>
+        /* 全局样式与配色定义 */
+        
+         :root {
+            --bg-color: #F8F6F2;
+            /* 柔和米白底色 */
+            --primary-color: #365F47;
+            /* 森林绿主色 */
+            --accent-color: #E75E40;
+            /* 焦橙色/价格字 */
+            --text-main: #333333;
+            /* 深灰主文字 */
+            --text-muted: #8E8C88;
+            /* 浅灰辅助字 */
+            --border-color: #EAE8E3;
+            /* 边框色 */
+            --card-bg: #FFFFFF;
+            /* 卡片白 */
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+        /* 桌面工作台布局 */
+        
+        .workbench {
+            display: flex;
+            background: #1a252f;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            gap: 40px;
+            align-items: flex-start;
+            max-width: 1000px;
+            width: 100%;
+        }
+        /* 左侧中控导航面板 */
+        
+        .control-panel {
+            flex: 1;
+            color: #ecf0f1;
+        }
+        
+        .control-panel h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-panel .subtitle {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        
+        .menu-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .menu-item {
+            padding: 12px 18px;
+            background: #2c3e50;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: #34495e;
+            transform: translateX(5px);
+        }
+        
+        .menu-item.active {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            border-color: #529e71;
+            box-shadow: 0 4px 12px rgba(54, 95, 71, 0.3);
+        }
+        
+        .menu-item span.num {
+            opacity: 0.6;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        /* 右侧手机模拟器容器 */
+        
+        .phone-wrapper {
+            position: relative;
+        }
+        
+        .phone-case {
+            width: 375px;
+            height: 812px;
+            background: var(--bg-color);
+            border: 12px solid #000;
+            border-radius: 40px;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        /* 仿iOS系统级顶栏 */
+        
+        .status-bar {
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            font-size: 14px;
+            font-weight: 600;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+            color: #000;
+        }
+        
+        .status-icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 25px;
+            background: #000;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 1000;
+        }
+        /* 手机主屏幕视口 */
+        
+        .screen-viewport {
+            flex: 1;
+            margin-top: 44px;
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        /* 隐藏滚动条 */
+        
+        .screen-viewport::-webkit-scrollbar {
+            display: none;
+        }
+        /* 页面视口控制器 */
+        
+        .app-page {
+            display: none;
+            flex-direction: column;
+            min-height: 100%;
+            padding-bottom: 65px;
+            /* 留出底部导航空间 */
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .app-page.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        /* 底部金刚区通用导航栏 */
+        
+        .global-bottom-nav {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: #FFFFFF;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 998;
+            padding-bottom: 5px;
+        }
+        
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--text-muted);
+            cursor: pointer;
+            flex: 1;
+            height: 100%;
+        }
+        
+        .nav-tab svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 2px;
+            fill: currentColor;
+        }
+        
+        .nav-tab.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        /* 特殊圆圈发布按钮 */
+        
+        .nav-tab.center-publish-btn {
+            position: relative;
+        }
+        
+        .nav-tab.center-publish-btn .icon-bg {
+            width: 38px;
+            height: 38px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 8px rgba(54, 95, 71, 0.3);
+        }
+        /* ==================== 常用组件样式群 ==================== */
+        
+        .header-bar {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            background: transparent;
+            font-weight: bold;
+            font-size: 17px;
+            position: relative;
+        }
+        
+        .header-bar .back-btn,
+        .header-bar .right-action {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            width: 30px;
+        }
+        /* 拟真书本渲染组件(纯CSS画出高级书壳立体感) */
+        
+        .book-cover-widget {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            border-radius: 4px 8px 8px 4px;
+            box-shadow: 3px 4px 8px rgba(0, 0, 0, 0.15), inset 3px 0 0px rgba(255, 255, 255, 0.2);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .book-cover-widget::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        /* ==================== 各独立页面专属CSS ==================== */
+        /* 01 启动页 */
+        
+        #page-01 {
+            background: var(--bg-color);
+            justify-content: space-between;
+            align-items: center;
+            padding: 80px 20px 60px 20px;
+            text-align: center;
+        }
+        
+        .splash-title-area h1 {
+            font-size: 32px;
+            letter-spacing: 4px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .splash-title-area p {
+            font-size: 14px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+        }
+        
+        .splash-vertical-slogan {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 18px;
+            letter-spacing: 6px;
+            color: #555;
+            margin: 40px 0;
+            line-height: 2;
+        }
+        
+        .splash-footer {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        /* 02 首页 */
+        
+        .home-search-box {
+            padding: 10px 15px;
+        }
+        
+        .search-input-mock {
+            background: #EDEAE4;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            color: var(--text-muted);
+            font-size: 13px;
+            gap: 8px;
+        }
+        
+        .home-banner {
+            margin: 5px 15px 15px 15px;
+            background: linear-gradient(135deg, #E6E1D6, #DFD9CD);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .home-banner h3 {
+            font-size: 18px;
+            color: #4A3E3D;
+            margin-bottom: 5px;
+        }
+        
+        .home-banner p {
+            font-size: 12px;
+            color: #7A6F6E;
+        }
+        
+        .kingzone-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 10px 15px;
+            text-align: center;
+            gap: 10px;
+        }
+        
+        .kingzone-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .kingzone-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 15px 10px 15px;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        
+        .section-header .more {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+        
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 0 15px 15px 15px;
+        }
+        
+        .book-card {
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .book-card-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin: 6px 0 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .book-card-author {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
+        .book-card-price {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        /* 03 分类页 */
+        
+        .category-container {
+            display: flex;
+            flex: 1;
+            background: #FFF;
+        }
+        
+        .category-sidebar {
+            width: 85px;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-item {
+            padding: 15px 10px;
+            font-size: 12px;
+            text-align: center;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        
+        .sidebar-item.active {
+            background: #FFFFFF;
+            color: var(--primary-color);
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .sidebar-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 15px;
+            bottom: 15px;
+            width: 4px;
+            background: var(--primary-color);
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .category-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .cat-group-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        
+        .cat-sub-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px 10px;
+            margin-bottom: 25px;
+        }
+        
+        .cat-sub-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .cat-sub-box {
+            width: 50px;
+            height: 65px;
+            background: var(--bg-color);
+            margin-bottom: 6px;
+            border-radius: 4px;
+        }
+        /* 04 书籍详情 */
+        
+        .detail-cover-sec {
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+            background: #EFECE6;
+        }
+        
+        .detail-info-block {
+            background: #FFFFFF;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .detail-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .price-now {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .price-old {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+        
+        .condition-tag {
+            background: #EBF4EE;
+            color: var(--primary-color);
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .detail-author {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        
+        .metadata-list {
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 12px;
+        }
+        
+        .metadata-item {
+            display: flex;
+        }
+        
+        .metadata-label {
+            color: var(--text-muted);
+            width: 65px;
+        }
+        
+        .detail-desc-block {
+            background: #FFFFFF;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .block-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .block-content {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .seller-block {
+            background: #FFFFFF;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .seller-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #DDD;
+        }
+        
+        .detail-bottom-actions {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: #FFF;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 10px;
+            z-index: 999;
+        }
+        
+        .btn-outline {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-solid {
+            flex: 1;
+            background: var(--primary-color);
+            color: white;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        /* 05 发布页 */
+        
+        .publish-form {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .upload-cover-placeholder {
+            width: 100px;
+            height: 120px;
+            border: 2px dashed #CCC;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--text-muted);
+            gap: 6px;
+            background: #FFF;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+        
+        .form-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .form-item label {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .form-item input,
+        .form-item textarea {
+            border: 1px solid var(--border-color);
+            background: #FFF;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+        }
+        
+        .condition-pills {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .pill {
+            padding: 6px 12px;
+            border-radius: 15px;
+            background: #FFF;
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .pill.active {
+            background: var(--primary-color);
+            color: #FFF;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-submit-publish {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 22px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+            text-align: center;
+        }
+        /* 06 购物车 */
+        
+        .cart-list {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .cart-item {
+            background: #FFF;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+        
+        .mock-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #CCC;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mock-checkbox.checked {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .mock-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .cart-item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .cart-item-title {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        .cart-item-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .cart-item-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+        
+        .quantity-stepper {
+            display: flex;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .step-btn {
+            width: 24px;
+            height: 24px;
+            background: #FFF;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .step-num {
+            width: 30px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            background: #F5F5F5;
+        }
+        
+        .cart-footer-bar {
+            position: absolute;
+            bottom: 60px;
+            width: 100%;
+            height: 50px;
+            background: #FFF;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 997;
+        }
+        
+        .btn-checkout {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        /* 07 订单确认 */
+        
+        .order-confirm-container {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .address-card {
+            background: #FFF;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+        
+        .address-user {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .address-detail {
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .summary-card {
+            background: #FFF;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            padding: 8px 0;
+            border-bottom: 1px solid #FAF9F6;
+        }
+        
+        .btn-submit-order {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        /* 08 我的订单 */
+        
+        .order-tabs {
+            display: flex;
+            background: #FFF;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .order-tab-item {
+            flex: 1;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        
+        .order-tab-item.active {
+            color: var(--primary-color);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .order-list {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .order-card {
+            background: #FFF;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            border-bottom: 1px solid #F9F9F6;
+            padding-bottom: 8px;
+        }
+        
+        .order-status-text {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+        
+        .order-card-body {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .order-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #F9F9F6;
+            padding-top: 8px;
+            font-size: 12px;
+        }
+        
+        .order-action-btn {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        /* 09 个人中心 */
+        
+        .profile-header-card {
+            background: linear-gradient(180deg, #E6E2D8, var(--bg-color));
+            padding: 30px 20px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .profile-name-area h3 {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .profile-level {
+            background: var(--primary-color);
+            color: white;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 6px;
+            width: fit-content;
+        }
+        
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background: #FFF;
+            padding: 15px 0;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        
+        .stat-num {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+        
+        .menu-list-group {
+            background: #FFF;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .menu-list-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 15px;
+            font-size: 13px;
+            border-bottom: 1px solid #FAFAFA;
+            cursor: pointer;
+        }
+        
+        .menu-list-row::after {
+            content: '›';
+            color: #CCC;
+            font-size: 16px;
+            line-height: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="workbench">
+        <div class="control-panel">
+            <h2>二手书交易 App</h2>
+            <div class="subtitle">高保真交互原型系统面板</div>
+            <ul class="menu-list">
+                <li class="menu-item active" onclick="syncSwitchPage('01')"><span>01 启动页</span><span class="num">Splash</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('02')"><span>02 首页</span><span class="num">Home</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('03')"><span>03 分类</span><span class="num">Category</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('04')"><span>04 书籍详情</span><span class="num">Detail</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('05')"><span>05 发布/卖书</span><span class="num">Publish</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('06')"><span>06 购物车</span><span class="num">Cart</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('07')"><span>07 订单确认</span><span class="num">Confirm</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('08')"><span>08 我的订单</span><span class="num">Orders</span></li>
+                <li class="menu-item" onclick="syncSwitchPage('09')"><span>09 个人中心</span><span class="num">Profile</span></li>
+            </ul>
+        </div>
+
+        <div class="phone-wrapper">
+            <div class="phone-case">
+                <div class="notch"></div>
+                <div class="status-bar">
+                    <span>9:41</span>
+                    <div class="status-icons">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2z"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm4 4v6h2V9h-2z"/></svg>
+                    </div>
+                </div>
+
+                <div class="screen-viewport" id="viewport">
+
+                    <div id="page-01" class="app-page active">
+                        <div class="splash-title-area">
+                            <h1>二手书</h1>
+                            <p>让每一本书 · 遇见新的读者</p>
+                        </div>
+                        <div class="splash-vertical-slogan">
+                            让知识循环，温暖延续
+                        </div>
+                        <div style="width:70px; height:60px; margin:0 auto; position:relative;">
+                            <div style="position:absolute; bottom:0; width:60px; height:12px; background:#DE6B48; border-radius:2px; transform:rotate(-4deg);"></div>
+                            <div style="position:absolute; bottom:8px; left:4px; width:56px; height:14px; background:#365F47; border-radius:2px; transform:rotate(2deg);"></div>
+                            <div style="position:absolute; bottom:18px; left:8px; width:50px; height:10px; background:#E7A941; border-radius:2px;"></div>
+                        </div>
+                        <div class="splash-footer" onclick="syncSwitchPage('02')" style="cursor:pointer; text-decoration:underline; color:var(--primary-color);">
+                            点击进入系统 &gt;
+                        </div>
+                    </div>
+
+                    <div id="page-02" class="app-page">
+                        <div class="home-search-box">
+                            <div class="search-input-mock">
+                                <span>🔍</span> 搜索书名 / 作者 / ISBN
+                            </div>
+                        </div>
+                        <div class="home-banner">
+                            <h3>好书不贵 知识传递</h3>
+                            <p>发现心仪的二手书</p>
+                        </div>
+                        <div class="kingzone-grid">
+                            <div class="kingzone-item" onclick="syncSwitchPage('03')">
+                                <div class="kingzone-icon" style="color:#365F47;">📚</div><span>分类</span>
+                            </div>
+                            <div class="kingzone-item">
+                                <div class="kingzone-icon" style="color:#E75E40;">💰</div><span>低价区</span>
+                            </div>
+                            <div class="kingzone-item">
+                                <div class="kingzone-icon" style="color:#E7A941;">✨</div><span>新上架</span>
+                            </div>
+                            <div class="kingzone-item">
+                                <div class="kingzone-icon" style="color:#4A90E2;">🔍</div><span>求书区</span>
+                            </div>
+                        </div>
+                        <div class="section-header">
+                            <span>为你推荐</span>
+                            <span class="more">更多 &gt;</span>
+                        </div>
+                        <div class="books-grid">
+                            <div class="book-card" onclick="openBookDetail('活着', '余华', '8.90', '#34495e')">
+                                <div class="book-cover-widget" style="height:120px; background:#1e375a;">活着</div>
+                                <div class="book-card-title">活着</div>
+                                <div class="book-card-author">余华</div>
+                                <div class="book-card-price">¥8.90</div>
+                            </div>
+                            <div class="book-card" onclick="openBookDetail('小王子', '圣埃克苏佩里', '6.50', '#2c3e50')">
+                                <div class="book-cover-widget" style="height:120px; background:#294a4f;">小王子</div>
+                                <div class="book-card-title">小王子</div>
+                                <div class="book-card-author">圣埃克苏佩里</div>
+                                <div class="book-card-price">¥6.50</div>
+                            </div>
+                            <div class="book-card" onclick="openBookDetail('百年孤独', '马尔克斯', '15.00', '#5a2e2e')">
+                                <div class="book-cover-widget" style="height:120px; background:#4f2929;">百年孤独</div>
+                                <div class="book-card-title">百年孤独</div>
+                                <div class="book-card-author">马尔克斯</div>
+                                <div class="book-card-price">¥15.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-03" class="app-page">
+                        <div class="home-search-box" style="background:#FFF;">
+                            <div class="search-input-mock" style="background:#F0EDE6;">🔍 搜索分类 / 书名</div>
+                        </div>
+                        <div class="category-container">
+                            <div class="category-sidebar">
+                                <div class="sidebar-item active">文学小说</div>
+                                <div class="sidebar-item">社科经管</div>
+                                <div class="sidebar-item">历史传记</div>
+                                <div class="sidebar-item">心理励志</div>
+                                <div class="sidebar-item">生活艺术</div>
+                            </div>
+                            <div class="category-content">
+                                <div class="cat-group-title">文学小说</div>
+                                <div class="cat-sub-grid">
+                                    <div class="cat-sub-item" onclick="syncSwitchPage('02')">
+                                        <div class="cat-sub-box" style="background:#E2DFD7;"></div>
+                                        <span>现代文学</span>
+                                    </div>
+                                    <div class="cat-sub-item" onclick="syncSwitchPage('02')">
+                                        <div class="cat-sub-box" style="background:#D4D0C5;"></div>
+                                        <span>外国文学</span>
+                                    </div>
+                                    <div class="cat-sub-item" onclick="syncSwitchPage('02')">
+                                        <div class="cat-sub-box" style="background:#C7C2B4;"></div>
+                                        <span>经典名著</span>
+                                    </div>
+                                </div>
+                                <div class="cat-group-title">社科经管</div>
+                                <div class="cat-sub-grid">
+                                    <div class="cat-sub-item">
+                                        <div class="cat-sub-box" style="background:#E5E2DA;"></div>
+                                        <span>经济学</span>
+                                    </div>
+                                    <div class="cat-sub-item">
+                                        <div class="cat-sub-box" style="background:#D8D4C9;"></div>
+                                        <span>管理学</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-04" class="app-page">
+                        <div class="header-bar">
+                            <div class="back-btn" onclick="syncSwitchPage('02')">❮</div>
+                            <div>书籍详情</div>
+                            <div class="right-action">⋮</div>
+                        </div>
+                        <div class="detail-cover-sec">
+                            <div id="detail-dynamic-cover" class="book-cover-widget" style="width:130px; height:180px; font-size:18px;">
+                                小王子
+                            </div>
+                        </div>
+                        <div class="detail-info-block">
+                            <div class="detail-price-row">
+                                <span class="price-now" id="detail-price">¥6.50</span>
+                                <span class="price-old">¥18.00</span>
+                                <span class="condition-tag">8.5成新</span>
+                            </div>
+                            <div class="detail-title" id="detail-title">小王子</div>
+                            <div class="detail-author" id="detail-author">[法] 圣埃克苏佩里</div>
+
+                            <div class="metadata-list">
+                                <div class="metadata-item"><span class="metadata-label">出版社</span><span>译林出版社</span></div>
+                                <div class="metadata-item"><span class="metadata-label">出版时间</span><span>2015-05</span></div>
+                                <div class="metadata-item"><span class="metadata-label">ISBN</span><span>9787544757306</span></div>
+                            </div>
+                        </div>
+                        <div class="detail-desc-block">
+                            <div class="block-title">书籍描述</div>
+                            <div class="block-content">
+                                《小王子》是一本写给所有人的童话。关于爱、责任与孤独。眼睛是看不见本质事物的，必须用心去看。
+                            </div>
+                        </div>
+                        <div class="seller-block">
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <div class="seller-avatar" style="background:#E7A941; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">阳</div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:bold;">小太阳</div>
+                                    <div style="font-size:11px; color:var(--text-muted);">评分 4.9 · 卖出 32 本书</div>
+                                </div>
+                            </div>
+                            <div style="font-size:12px; color:var(--primary-color);">查看全部 &gt;</div>
+                        </div>
+
+                        <div class="detail-bottom-actions">
+                            <div class="btn-outline" onclick="addToCartAction()">加入购物车</div>
+                            <div class="btn-solid" onclick="buyNowAction()">立即购买</div>
+                        </div>
+                    </div>
+
+                    <div id="page-05" class="app-page">
+                        <div class="header-bar">
+                            <div></div>
+                            <div>发布二手书</div>
+                            <div></div>
+                        </div>
+                        <div class="publish-form">
+                            <div class="upload-cover-placeholder">
+                                <span style="font-size:24px;">📷</span>
+                                <span>上传书籍封面</span>
+                            </div>
+                            <div class="form-item">
+                                <label>书名</label>
+                                <input type="text" placeholder="请输入书名" value="我们仨">
+                            </div>
+                            <div class="form-item">
+                                <label>作者</label>
+                                <input type="text" placeholder="请输入作者" value="杨绛">
+                            </div>
+                            <div class="form-item">
+                                <label>成色</label>
+                                <div class="condition-pills">
+                                    <div class="pill">全新</div>
+                                    <div class="pill">9成新</div>
+                                    <div class="pill active">8成新</div>
+                                    <div class="pill">7成新及以下</div>
+                                </div>
+                            </div>
+                            <div class="form-item">
+                                <label>售价</label>
+                                <input type="text" placeholder="¥ 请输入售价" value="9.90">
+                            </div>
+                            <div class="btn-submit-publish" onclick="alert('模拟发布成功！商品已上架。'); syncSwitchPage('02');">发布</div>
+                        </div>
+                    </div>
+
+                    <div id="page-06" class="app-page">
+                        <div class="header-bar">
+                            <div></div>
+                            <div>购物车</div>
+                            <div style="font-size:13px; font-weight:normal;">编辑</div>
+                        </div>
+                        <div class="cart-list" id="cart-items-wrapper">
+                        </div>
+                        <div class="cart-footer-bar">
+                            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+                                <div class="mock-checkbox checked" id="cart-all-check" onclick="toggleAllCart()"></div> 全选
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="font-size:14px;">合计: <span style="color:var(--accent-color); font-weight:bold;" id="cart-total-price">¥0.00</span></div>
+                                <div class="btn-checkout" onclick="syncSwitchPage('07')">去结算</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-07" class="app-page">
+                        <div class="header-bar">
+                            <div class="back-btn" onclick="syncSwitchPage('06')">❮</div>
+                            <div>订单确认</div>
+                            <div></div>
+                        </div>
+                        <div class="order-confirm-container">
+                            <div class="address-card">
+                                <div class="address-user">张同学 138****1234</div>
+                                <div class="address-detail">浙江省杭州市西湖区文三路123号</div>
+                            </div>
+                            <div class="summary-card">
+                                <div style="font-weight:bold; font-size:13px; margin-bottom:10px;">购买清单</div>
+                                <div id="order-confirm-list">
+                                </div>
+                                <div class="summary-row" style="margin-top:10px;">
+                                    <span>运费</span><span>¥3.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-bottom-actions" style="justify-content: space-between;">
+                            <div style="font-size:15px; font-weight:bold;">实付款: <span style="color:var(--accent-color);" id="order-final-pay">¥0.00</span></div>
+                            <div class="btn-solid" style="flex:none; width:120px;" onclick="submitOrderAction()">提交订单</div>
+                        </div>
+                    </div>
+
+                    <div id="page-08" class="app-page">
+                        <div class="header-bar">
+                            <div></div>
+                            <div>我的订单</div>
+                            <div></div>
+                        </div>
+                        <div class="order-tabs">
+                            <div class="order-tab-item active">全部</div>
+                            <div class="order-tab-item">待付款</div>
+                            <div class="order-tab-item">待发货</div>
+                            <div class="order-tab-item">待收货</div>
+                        </div>
+                        <div class="order-list" id="dynamic-order-list">
+                            <div class="order-card">
+                                <div class="order-card-header">
+                                    <span>订单号: 20240518112233</span>
+                                    <span class="order-status-text">待收货</span>
+                                </div>
+                                <div class="order-card-body">
+                                    <div class="book-cover-widget" style="width:40px; height:55px; font-size:8px; padding:2px;">百年孤独</div>
+                                    <div style="flex:1; font-size:13px; font-weight:bold;">百年孤独</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">x1</div>
+                                </div>
+                                <div class="order-card-footer">
+                                    <span>实付款: <b>¥15.00</b></span>
+                                    <div class="order-action-btn" onclick="alert('确认收货成功！')">确认收货</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-09" class="app-page">
+                        <div class="profile-header-card">
+                            <div class="seller-avatar" style="width:55px; height:55px; background:#365F47; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-size:22px;">📖</div>
+                            <div class="profile-name-area">
+                                <h3>热爱阅读的你</h3>
+                                <div class="profile-level">Lv.5 读书大师</div>
+                            </div>
+                        </div>
+                        <div class="profile-stats-grid">
+                            <div class="stat-item"><span class="stat-num">12</span><span>我发布的</span></div>
+                            <div class="stat-item"><span class="stat-num">28</span><span>我卖出的</span></div>
+                            <div class="stat-item"><span class="stat-num">56</span><span>我买到的</span></div>
+                            <div class="stat-item"><span class="stat-num">3</span><span>收藏夹</span></div>
+                        </div>
+                        <div class="menu-list-group">
+                            <div class="menu-list-row" onclick="syncSwitchPage('08')">我的订单</div>
+                            <div class="menu-list-row" onclick="syncSwitchPage('06')">我的购物车</div>
+                            <div class="menu-list-row">地址管理</div>
+                            <div class="menu-list-row">联系客服</div>
+                            <div class="menu-list-row">账户设置</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="global-bottom-nav" id="bottom-nav-bar">
+                    <div class="nav-tab active" onclick="syncSwitchPage('02')">
+                        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg> 首页
+                    </div>
+                    <div class="nav-tab" onclick="syncSwitchPage('03')">
+                        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg> 分类
+                    </div>
+                    <div class="nav-tab center-publish-btn" onclick="syncSwitchPage('05')">
+                        <div class="icon-bg">＋</div>
+                        卖书
+                    </div>
+                    <div class="nav-tab" onclick="syncSwitchPage('06')">
+                        <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>                        购物车
+                    </div>
+                    <div class="nav-tab" onclick="syncSwitchPage('09')">
+                        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> 我的
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 核心数据引擎与内存状态 ====================
+        let cartData = [{
+            id: '101',
+            title: '活着',
+            author: '余华',
+            price: 8.90,
+            quantity: 1,
+            checked: true,
+            color: '#1e375a'
+        }, {
+            id: '102',
+            title: '小王子',
+            author: '圣埃克苏佩里',
+            price: 6.50,
+            quantity: 1,
+            checked: true,
+            color: '#294a4f'
+        }, {
+            id: '103',
+            title: '我们仨',
+            author: '杨绛',
+            price: 9.90,
+            quantity: 1,
+            checked: true,
+            color: '#7a6452'
+        }];
+
+        let currentSelectedBook = {
+            title: '小王子',
+            author: '圣埃克苏佩里',
+            price: 6.50,
+            color: '#294a4f'
+        };
+
+        // ==================== 交互链路函数群 ====================
+
+        // 同步左侧中控与手机内部界面的主路由
+        function syncSwitchPage(pageId) {
+            // 1. 切换左侧列表选中高亮
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                if (item.getAttribute('onclick').includes(`'${pageId}'`)) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // 2. 切换手机屏幕可视区
+            const pages = document.querySelectorAll('.app-page');
+            pages.forEach(page => page.classList.remove('active'));
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if (targetPage) targetPage.classList.add('active');
+
+            // 3. 关联更新底部金刚区高亮态 (只在02, 03, 05, 06, 09显示或激活)
+            const bottomNavBar = document.getElementById('bottom-nav-bar');
+            const tabs = document.querySelectorAll('.nav-tab');
+
+            // 启动页(01)、详情页(04)、确认订单(07)隐藏底部金刚栏，增强沉浸式原生态体验
+            if (['01', '04', '07', '08'].includes(pageId)) {
+                bottomNavBar.style.display = 'none';
+            } else {
+                bottomNavBar.style.display = 'flex';
+                tabs.forEach(tab => tab.classList.remove('active'));
+                if (pageId === '02') tabs[0].classList.add('active');
+                if (pageId === '03') tabs[1].classList.add('active');
+                if (pageId === '05') tabs[2].classList.add('active');
+                if (pageId === '06') tabs[3].classList.add('active');
+                if (pageId === '09') tabs[4].classList.add('active');
+            }
+
+            // 核心页面视图生命周期钩子触发
+            if (pageId === '06') renderCartDom();
+            if (pageId === '07') prepareOrderConfirmView();
+        }
+
+        // 打开书籍详情并联动传递实体属性
+        function openBookDetail(title, author, price, colorBg) {
+            currentSelectedBook = {
+                title,
+                author,
+                price,
+                color: colorBg
+            };
+
+            document.getElementById('detail-title').innerText = title;
+            document.getElementById('detail-author').innerText = author;
+            document.getElementById('detail-price').innerText = '¥' + price;
+
+            const coverWidget = document.getElementById('detail-dynamic-cover');
+            coverWidget.innerText = title;
+            coverWidget.style.background = colorBg;
+
+            syncSwitchPage('04');
+        }
+
+        // 详情页 - 点击加入购物车
+        function addToCartAction() {
+            const exist = cartData.find(item => item.title === currentSelectedBook.title);
+            if (exist) {
+                exist.quantity++;
+            } else {
+                cartData.push({
+                    id: Date.now().toString(),
+                    title: currentSelectedBook.title,
+                    author: currentSelectedBook.author,
+                    price: parseFloat(currentSelectedBook.price),
+                    quantity: 1,
+                    checked: true,
+                    color: currentSelectedBook.color
+                });
+            }
+            alert(`已成功将《${currentSelectedBook.title}》推入购物车！`);
+            syncSwitchPage('06');
+        }
+
+        // 详情页 - 立即购买
+        function buyNowAction() {
+            cartData.forEach(item => item.checked = false); // 仅结算当前单品
+            cartData.push({
+                id: Date.now().toString(),
+                title: currentSelectedBook.title,
+                author: currentSelectedBook.author,
+                price: parseFloat(currentSelectedBook.price),
+                quantity: 1,
+                checked: true,
+                color: currentSelectedBook.color
+            });
+            syncSwitchPage('07');
+        }
+
+        // ==================== 06 购物车动态渲染及计算引擎 ====================
+        function renderCartDom() {
+            const wrapper = document.getElementById('cart-items-wrapper');
+            if (cartData.length === 0) {
+                wrapper.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:40px 0;font-size:13px;">购物车空空如也~</div>`;
+                calculateCartTotalPrice();
+                return;
+            }
+
+            let htmlStr = '';
+            cartData.forEach((item, index) => {
+                htmlStr += `
+                <div class="cart-item">
+                    <div class="mock-checkbox ${item.checked ? 'checked' : ''}" onclick="toggleCartItemCheck(${index})"></div>
+                    <div class="book-cover-widget" style="width: 45px; height: 60px; font-size:9px; background:${item.color}; padding:2px;">${item.title}</div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${item.title}</div>
+                        <div class="cart-item-meta">${item.author} | 8.5成新</div>
+                        <div class="cart-item-bottom">
+                            <span style="color:var(--accent-color); font-weight:bold; font-size:14px;">¥${item.price.toFixed(2)}</span>
+                            <div class="quantity-stepper">
+                                <button class="step-btn" onclick="changeQty(${index}, -1)">-</button>
+                                <div class="step-num">${item.quantity}</div>
+                                <button class="step-btn" onclick="changeQty(${index}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            });
+            wrapper.innerHTML = htmlStr;
+            calculateCartTotalPrice();
+        }
+
+        function toggleCartItemCheck(index) {
+            cartData[index].checked = !cartData[index].checked;
+            renderCartDom();
+        }
+
+        function toggleAllCart() {
+            const allCheckBtn = document.getElementById('cart-all-check');
+            const willBeChecked = !allCheckBtn.classList.contains('checked');
+            cartData.forEach(item => item.checked = willBeChecked);
+            renderCartDom();
+        }
+
+        function changeQty(index, change) {
+            cartData[index].quantity += change;
+            if (cartData[index].quantity <= 0) {
+                cartData.splice(index, 1);
+            }
+            renderCartDom();
+        }
+
+        function calculateCartTotalPrice() {
+            let total = 0;
+            let allChecked = true;
+            cartData.forEach(item => {
+                if (item.checked) {
+                    total += item.price * item.quantity;
+                } else {
+                    allChecked = false;
+                }
+            });
+            document.getElementById('cart-total-price').innerText = '¥' + total.toFixed(2);
+            const allCheckBtn = document.getElementById('cart-all-check');
+            if (allCheckBtn) {
+                if (allChecked && cartData.length > 0) allCheckBtn.classList.add('checked');
+                else allCheckBtn.classList.remove('checked');
+            }
+        }
+
+        // ==================== 07 确认订单与数据串联 ====================
+        let computedFinalPay = 0;
+
+        function prepareOrderConfirmView() {
+            const listWrapper = document.getElementById('order-confirm-list');
+            const checkedItems = cartData.filter(item => item.checked);
+
+            if (checkedItems.length === 0) {
+                listWrapper.innerHTML = `<div style="font-size:12px;color:var(--text-muted);">没有选择结算商品</div>`;
+                document.getElementById('order-final-pay').innerText = '¥0.00';
+                computedFinalPay = 0;
+                return;
+            }
+
+            let html = '';
+            let goodsTotal = 0;
+            checkedItems.forEach(item => {
+                goodsTotal += item.price * item.quantity;
+                html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:6px 0;">
+                    <span style="color:#333;">${item.title} <span style="color:var(--text-muted);">x${item.quantity}</span></span>
+                    <span style="font-weight:bold;">¥${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+            `;
+            });
+            listWrapper.innerHTML = html;
+            computedFinalPay = goodsTotal + 3.00; // 包含3元固定模拟运费
+            document.getElementById('order-final-pay').innerText = '¥' + computedFinalPay.toFixed(2);
+        }
+
+        // 07 提交订单动作 -> 联动插入 08 订单中心
+        function submitOrderAction() {
+            if (computedFinalPay === 0) {
+                alert('没有可以提交的订单项');
+                return;
+            }
+            const checkedItems = cartData.filter(item => item.checked);
+            const firstItemTitle = checkedItems[0].title;
+            const totalCountStr = checkedItems.length > 1 ? ` 等${checkedItems.length}本` : '';
+
+            // 追加动态新订单元数据
+            const orderListWrapper = document.getElementById('dynamic-order-list');
+            const newOrderNode = document.createElement('div');
+            newOrderNode.className = 'order-card';
+            newOrderNode.innerHTML = `
+            <div class="order-card-header">
+                <span>订单号: ${Date.now()}</span>
+                <span class="order-status-text">待发货</span>
+            </div>
+            <div class="order-card-body">
+                <div class="book-cover-widget" style="width:40px; height:55px; font-size:8px; padding:2px; background:${checkedItems[0].color};">${firstItemTitle}</div>
+                <div style="flex:1; font-size:13px; font-weight:bold;">${firstItemTitle}${totalCountStr}</div>
+                <div style="font-size:12px; color:var(--text-muted);">共${checkedItems.length}件</div>
+            </div>
+            <div class="order-card-footer">
+                <span>实付款: <b>¥${computedFinalPay.toFixed(2)}</b></span>
+                <div class="order-action-btn" style="border-color:#AAA; color:#666;" onclick="alert('已提醒卖家尽快发货')">提醒发货</div>
+            </div>
+        `;
+            orderListWrapper.insertBefore(newOrderNode, orderListWrapper.firstChild);
+
+            // 清理已结算的购物车商品
+            cartData = cartData.filter(item => !item.checked);
+
+            alert('订单提交成功，已自动进入【我的订单】中心！');
+            syncSwitchPage('08');
+        }
+    </script>
+
+</body>
+
+</html>
