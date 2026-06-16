@@ -32,15 +32,15 @@ const menuItems = computed(() => {
     { text: '联系客服', path: '', action: 'contact_service', isTab: false },
   ]
 
-  // 管理员菜单
-  if (userStore.userInfo.role === 'admin') {
+  // 管理员菜单（admin 或 super_admin 都能看到）
+  if (userStore.userInfo.role === 'admin' || userStore.userInfo.role === 'super_admin') {
     items.push({ text: '管理后台', path: '/pages/admin/index', isTab: false })
   }
 
   return items
 })
 
-const isAdmin = computed(() => userStore.userInfo.role === 'admin')
+const isAdmin = computed(() => userStore.userInfo.role === 'admin' || userStore.userInfo.role === 'super_admin')
 
 function handleMenuClick(path: string, isTab: boolean, action?: string) {
   if (action === 'contact_service') {

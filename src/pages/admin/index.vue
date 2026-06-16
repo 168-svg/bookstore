@@ -7,6 +7,9 @@ definePage({
 
 import type { IAdminStats } from '@/api/admin'
 import { getAdminStats } from '@/api/admin'
+import { useUserStore } from '@/store'
+
+const userStore = useUserStore()
 
 const stats = ref<IAdminStats>({
   userCount: 0,
@@ -18,6 +21,7 @@ const stats = ref<IAdminStats>({
 })
 
 const loading = ref(true)
+const isAdmin = computed(() => userStore.userInfo.role === 'admin' || userStore.userInfo.role === 'super_admin')
 
 const menuItems = [
   { label: '书籍管理', icon: '📚', path: '/pages/admin/books/index', color: '#365F47' },
@@ -27,13 +31,18 @@ const menuItems = [
 ]
 
 async function fetchStats() {
+  if (!isAdmin.value) {
+    uni.showToast({ title: '当前账号无管理权限，请用管理员账号登录', icon: 'none', duration: 2500 })
+    loading.value = false
+    return
+  }
   try {
     loading.value = true
     const res = await getAdminStats()
     stats.value = res
   }
   catch {
-    uni.showToast({ title: '获取统计数据失败', icon: 'none' })
+    uni.showToast({ title: '获取统计数据失败（可能无权限）', icon: 'none' })
   }
   finally {
     loading.value = false

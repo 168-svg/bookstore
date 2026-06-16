@@ -7,6 +7,10 @@ definePage({
 
 import type { IOrder } from '@/api/orders'
 import { getAdminOrders, updateOrderStatus } from '@/api/orders'
+import { useUserStore } from '@/store'
+
+const userStore = useUserStore()
+const isAdmin = computed(() => userStore.userInfo.role === 'admin' || userStore.userInfo.role === 'super_admin')
 
 const orders = ref<IOrder[]>([])
 const total = ref(0)
@@ -17,6 +21,11 @@ const loading = ref(false)
 const statusOptions = ['', '待付款', '待发货', '待收货', '已完成', '已取消']
 
 async function fetchOrders() {
+  if (!isAdmin.value) {
+    uni.showToast({ title: '当前账号无管理权限，请用管理员账号登录', icon: 'none', duration: 2500 })
+    loading.value = false
+    return
+  }
   try {
     loading.value = true
     const params: Record<string, any> = { page: page.value, pageSize: 20 }
@@ -26,7 +35,7 @@ async function fetchOrders() {
     total.value = res.total
   }
   catch {
-    uni.showToast({ title: '获取订单失败', icon: 'none' })
+    uni.showToast({ title: '获取订单失败（可能无权限）', icon: 'none' })
   }
   finally {
     loading.value = false
