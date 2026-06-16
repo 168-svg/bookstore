@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "node scripts/railway-build.js"
+    "buildCommand": "cd server && npm install --omit=dev --no-audit --no-fund"
   },
   "deploy": {
     "startCommand": "cd server && node src/index.js",
@@ -10,4 +10,3 @@
     "startupCommand": "cd server && node src/index.js"
   }
 }
-// Trigger rebuild
